@@ -93,35 +93,75 @@ export class TerrainGenerator {
         const width = options.width || 100;
         const length = options.length || 100;
         const roughness = options.roughness || 1;
+        const subdivisions = options.subdivisions || 100;
 
-        const ground = this.createGroundMesh(scene, width, length);
-        this.applyPerlinNoise(ground, roughness, width, length);
-        this.applyMaterial(ground, scene);
+        // Создаем массивы для вершин и индексов
+        const positions = [];
+        const indices = [];
+        const uvs = [];
 
-        return ground;
-    }
+        // Создаем сетку вершин с применением шума Перлина
+        const step = 1;
+        const verticesPerRow = subdivisions + 1;
 
-    createGroundMesh(scene, width, length) {
-        return BABYLON.MeshBuilder.CreateGround("terrain", {
-            width,
-            height: length,
-            subdivisions: 100
-        }, scene);
-    }
+        for (let z = 0; z <= subdivisions; z++) {
+            for (let x = 0; x <= subdivisions; x++) {
+                // Нормализуем координаты для шума Перлина
+                const nx = (x * step / subdivisions) * 8;
+                const nz = (z * step / subdivisions) * 8;
+                
+                // Получаем высоту из шума Перлина
+                const height = this.generateHeight(nx, nz) * 20 * roughness;
 
-    applyPerlinNoise(ground, roughness, width, length) {
-        const vertices = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        const normals = ground.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i] / width * 8;
-            const z = vertices[i + 2] / length * 8;
-            vertices[i + 1] = this.generateHeight(x, z) * 20 * roughness;
+                // Масштабируем координаты к реальному размеру
+                const xPos = (x / subdivisions - 0.5) * width;
+                const zPos = (z / subdivisions - 0.5) * length;
+
+                positions.push(xPos, height, zPos);
+                uvs.push(x / subdivisions, z / subdivisions);
+            }
         }
 
-        ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, vertices);
-        BABYLON.VertexData.ComputeNormals(vertices, ground.getIndices(), normals);
-        ground.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+        // Создаем индексы для треугольников
+        for (let z = 0; z < subdivisions; z++) {
+            for (let x = 0; x < subdivisions; x++) {
+                const baseIdx = z * verticesPerRow + x;
+                indices.push(
+                    baseIdx, baseIdx + 1, baseIdx + verticesPerRow,
+                    baseIdx + 1, baseIdx + verticesPerRow + 1, baseIdx + verticesPerRow
+                );
+            }
+        }
+
+        // Создаем меш
+        const ground = new BABYLON.Mesh("terrain", scene);
+        
+        // Создаем и применяем вертексные данные
+        const vertexData = new BABYLON.VertexData();
+        vertexData.positions = positions;
+        vertexData.indices = indices;
+        vertexData.uvs = uvs;
+        
+        // Вычисляем нормали для правильного освещения
+        const normals = [];
+        BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+        vertexData.normals = normals;
+        
+        vertexData.applyToMesh(ground);
+
+        // Применяем материал
+        this.applyMaterial(ground, scene);
+
+        // Заменяем PhysicsImpostor на PhysicsAggregate
+        const groundAggregate = new BABYLON.PhysicsAggregate(
+            ground,
+            BABYLON.PhysicsShapeType.MESH, // Используем MESH вместо BOX
+            { mass: 0, restitution: 0.7, friction: 0.6 },
+            scene
+        );
+
+        ground.physicsAggregate = groundAggregate; // Сохраняем ссылку на физический объект
+        return ground;
     }
 
     applyMaterial(ground, scene) {

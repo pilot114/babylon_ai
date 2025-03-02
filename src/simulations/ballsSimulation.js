@@ -60,12 +60,9 @@ export class BallsSimulation extends BaseSimulation {
     }
 
     addPhysicsToTerrain(ground) {
-        ground.physicsAggregate = new BABYLON.PhysicsAggregate(
-            ground,
-            BABYLON.PhysicsShapeType.BOX,
-            { mass: 0, restitution: 0.7, friction: 0.6 },
-            this.scene
-        );
+        // Физика уже добавлена в TerrainGenerator
+        // Просто сохраняем ссылку на землю
+        this.ground = ground;
     }
 
     startSpawning() {
