@@ -8,10 +8,12 @@ export class GameGUI {
     }
 
     initialize() {
-        // Создаем динамическую текстуру для FPS
-        const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        const texture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        this.createFPSCounter(texture);
+        this.startFPSUpdate();
+    }
 
-        // Создаем текстовый блок для FPS
+    createFPSCounter(texture) {
         this.fpsText = new GUI.TextBlock();
         this.fpsText.text = "FPS: 0";
         this.fpsText.color = "white";
@@ -20,11 +22,10 @@ export class GameGUI {
         this.fpsText.textVerticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
         this.fpsText.paddingTop = "10px";
         this.fpsText.paddingRight = "10px";
+        texture.addControl(this.fpsText);
+    }
 
-        // Добавляем текст на UI
-        advancedTexture.addControl(this.fpsText);
-
-        // Обновляем FPS каждые 500мс
+    startFPSUpdate() {
         this.updateInterval = setInterval(() => {
             this.fpsText.text = `FPS: ${Math.round(this.scene.getEngine().getFps())}`;
         }, 500);
