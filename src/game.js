@@ -1,6 +1,7 @@
 import * as BABYLON from '@babylonjs/core';
 import { TerrainGenerator } from './terrainGenerator.js';
 import { BallsSimulation } from './ballsSimulation.js';
+import { GameGUI } from './gui.js';
 
 export class Game {
     constructor() {
@@ -9,6 +10,7 @@ export class Game {
         this.scene = null;
         this.terrainGenerator = new TerrainGenerator();
         this.ballsSimulation = null;
+        this.gui = null;
         
         // Привязываем метод render к текущему контексту
         this.render = this.render.bind(this);
@@ -52,6 +54,11 @@ export class Game {
         this.ballsSimulation.startSpawning(500);
 
         this.scene = scene;
+        
+        // Инициализируем GUI
+        this.gui = new GameGUI(scene);
+        this.gui.initialize();
+
         return scene;
     }
 

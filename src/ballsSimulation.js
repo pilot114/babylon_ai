@@ -1,4 +1,5 @@
 import * as BABYLON from '@babylonjs/core';
+import HavokPhysics from '@babylonjs/havok';
 
 export class BallsSimulation {
     constructor(scene) {
@@ -10,25 +11,17 @@ export class BallsSimulation {
         this.groundHeight = 0; // Добавляем отслеживание высоты поверхности
         this.maxBalls = 50; // Ограничиваем максимальное количество шариков
         this.cleanupInterval = null; // Интервал для периодической очистки
-        this.physicsEnabled = false;
     }
 
     async initialize() {
         try {
-            // Ждем загрузки Havok
-            const havokInstance = await window.HavokPhysics();
-            
-            // Создаем плагин физики
+            // Инициализируем Havok
+            const havokInstance = await HavokPhysics();
             const havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
             
             // Включаем физику в сцене
-            this.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), havokPlugin);
-            
-            // Даем время на инициализацию
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            this.physicsEnabled = true;
-            this.setupMonitoring();
+            const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
+            this.scene.enablePhysics(gravityVector, havokPlugin);
 
             return true;
         } catch (error) {
@@ -37,22 +30,7 @@ export class BallsSimulation {
         }
     }
 
-    setupMonitoring() {
-        this.monitorInterval = setInterval(() => {
-            console.log(`Количество шариков в сцене: ${this.balls.length}`);
-        }, 1000);
-
-        this.cleanupInterval = setInterval(() => {
-            this.cleanupOldBalls();
-        }, 5000);
-    }
-
     addPhysicsToTerrain(ground) {
-        if (!this.physicsEnabled) {
-            console.error("Physics not yet initialized!");
-            return;
-        }
-
         // Сохраняем минимальную высоту поверхности
         const verticesData = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
         let minY = Infinity;
@@ -61,39 +39,16 @@ export class BallsSimulation {
         }
         this.groundHeight = minY;
 
-        // Создаем статичный импостор для земли
-        ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+        // Добавляем физику к поверхности
+        const groundAggregate = new BABYLON.PhysicsAggregate(
             ground,
-            BABYLON.PhysicsImpostor.PlaneImpostor,
-            { 
-                mass: 0,
-                friction: 0.2,
-                restitution: 0.3
-            },
+            BABYLON.PhysicsShapeType.BOX,
+            { mass: 0, restitution: 0.7, friction: 0.6 },
             this.scene
         );
     }
 
-    cleanupOldBalls() {
-        // Удаляем старые шарики, если их слишком много
-        if (this.balls.length > this.maxBalls * 0.8) { // Если больше 80% от максимума
-            const ballsToRemove = this.balls.slice(0, 10); // Удаляем 10 старейших шариков
-            ballsToRemove.forEach(ball => {
-                if (ball.physicsImpostor) {
-                    ball.physicsImpostor.dispose();
-                }
-                ball.dispose();
-            });
-            this.balls = this.balls.filter(b => !ballsToRemove.includes(b));
-        }
-    }
-
     createBall() {
-        if (!this.physicsEnabled) {
-            console.error("Physics not yet initialized!");
-            return;
-        }
-
         if (this.balls.length >= this.maxBalls) {
             return;
         }
@@ -117,15 +72,11 @@ export class BallsSimulation {
         );
         ball.material = material;
 
-        // Упрощенные параметры физики для шарика
-        ball.physicsImpostor = new BABYLON.PhysicsImpostor(
+        // Добавляем физику к шару
+        const sphereAggregate = new BABYLON.PhysicsAggregate(
             ball,
-            BABYLON.PhysicsImpostor.SphereImpostor,
-            { 
-                mass: 1,
-                friction: 0.2,
-                restitution: 0.3
-            },
+            BABYLON.PhysicsShapeType.SPHERE,
+            { mass: 1, restitution: 0.7, friction: 0.6 },
             this.scene
         );
 
@@ -137,8 +88,8 @@ export class BallsSimulation {
                 ball.position.y > 100 || 
                 isNaN(ball.position.y)) {
                 
-                if (ball.physicsImpostor) {
-                    ball.physicsImpostor.dispose();
+                if (sphereAggregate) {
+                    sphereAggregate.dispose();
                 }
                 ball.dispose();
                 this.balls = this.balls.filter(b => b !== ball);
@@ -148,14 +99,9 @@ export class BallsSimulation {
 
     startSpawning(interval = 500) {
         if (this.spawnInterval) {
-            this.stopSpawning();
+            clearInterval(this.spawnInterval);
         }
-        
-        this.spawnInterval = setInterval(() => {
-            if (this.balls.length < this.maxBalls) {
-                this.createBall();
-            }
-        }, interval);
+        this.spawnInterval = setInterval(() => this.createBall(), interval);
     }
 
     stopSpawning() {
@@ -165,22 +111,17 @@ export class BallsSimulation {
         }
     }
 
-    cleanup() {
+    dispose() {
         this.stopSpawning();
-        // Останавливаем мониторинг
         if (this.monitorInterval) {
             clearInterval(this.monitorInterval);
-            this.monitorInterval = null;
         }
-
         if (this.cleanupInterval) {
             clearInterval(this.cleanupInterval);
-            this.cleanupInterval = null;
         }
-
         this.balls.forEach(ball => {
-            if (ball.physicsImpostor) {
-                ball.physicsImpostor.dispose();
+            if (ball.physicsAggregate) {
+                ball.physicsAggregate.dispose();
             }
             ball.dispose();
         });

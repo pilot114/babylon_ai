@@ -19,8 +19,6 @@ export class TerrainGenerator {
         const length = options.length || 100;
         const roughness = options.roughness || 1;
 
-        console.log(options);
-        
         // Создаем сетку для ландшафта
         const ground = new BABYLON.GroundBuilder.CreateGround("terrain", {
             width: width,

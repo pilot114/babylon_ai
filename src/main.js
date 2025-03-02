@@ -1,7 +1,8 @@
 import { Game } from './game.js';
 
-// Запускаем игру при загрузке страницы
-window.addEventListener("DOMContentLoaded", async () => {
+async function startGame() {
     const game = new Game();
     await game.start();
-}); 
+}
+
+window.addEventListener("DOMContentLoaded", startGame); 
