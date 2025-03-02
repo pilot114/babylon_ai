@@ -6,8 +6,8 @@ export class BallsSimulation extends BaseSimulation {
     constructor(scene, options = {}) {
         super(scene);
         this.options = {
-            spawnRate: options.spawnRate || 500,
-            maxBalls: options.maxBalls || 50,
+            spawnRate: options.spawnRate || 50,
+            maxBalls: options.maxBalls || 500,
             spawnHeight: options.spawnHeight || 20,
             spawnAreaSize: options.spawnAreaSize || 30,
             ballSize: options.ballSize || 0.3

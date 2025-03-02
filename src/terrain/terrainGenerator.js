@@ -164,10 +164,26 @@ export class TerrainGenerator {
         return ground;
     }
 
-    applyMaterial(ground, scene) {
+    async applyMaterial(ground, scene) {
+        // Создаем базовый материал
         const material = new BABYLON.StandardMaterial("terrainMaterial", scene);
-        material.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.3);
+
+        // Загружаем текстуру травы
+        const grassTexture = new BABYLON.Texture("/textures/grass.jpg", scene);
+
+        // Настраиваем масштабирование текстуры
+        const textureScale = 32;
+        grassTexture.uScale = textureScale;
+        grassTexture.vScale = textureScale;
+
+        // Настраиваем материал
+        material.diffuseTexture = grassTexture;
         material.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        material.specularPower = 32;
+        material.ambientColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+
+        // Применяем материал
         ground.material = material;
+        ground.receiveShadows = true;
     }
 } 

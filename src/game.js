@@ -37,7 +37,7 @@ async function setupSimulations(scene) {
     const ground = terrainGenerator.createTerrain(scene, {
         width: 30,
         length: 30,
-        roughness: 0.05
+        roughness: 0.03
     });
 
     ballsSimulation.addPhysicsToTerrain(ground);
