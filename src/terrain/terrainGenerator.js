@@ -172,7 +172,7 @@ export class TerrainGenerator {
         const grassTexture = new BABYLON.Texture("/textures/grass.jpg", scene);
 
         // Настраиваем масштабирование текстуры
-        const textureScale = 32;
+        const textureScale = 128;
         grassTexture.uScale = textureScale;
         grassTexture.vScale = textureScale;
 

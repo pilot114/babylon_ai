@@ -1,7 +1,9 @@
 import * as BABYLON from '@babylonjs/core';
+import HavokPhysics from '@babylonjs/havok';
 import { TerrainGenerator } from './terrain/terrainGenerator.js';
 import { BallsSimulation } from './simulations/ballsSimulation.js';
 import { GameGUI } from './ui/gui.js';
+import { FirstPersonController } from './player/firstPersonController.js';
 
 const state = {
     canvas: null,
@@ -9,16 +11,20 @@ const state = {
     scene: null,
     terrainGenerator: null,
     ballsSimulation: null,
-    gui: null
+    gui: null,
+    player: null,
+    havokPlugin: null
 };
 
-function setupCamera(scene, canvas) {
-    const camera = new BABYLON.ArcRotateCamera(
-        "camera", 0, Math.PI / 3, 40,
-        BABYLON.Vector3.Zero(), scene
-    );
-    camera.attachControl(canvas, true);
-    return camera;
+async function setupPhysics(scene) {
+    const havokInstance = await HavokPhysics();
+    state.havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
+    scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), state.havokPlugin);
+}
+
+async function setupPlayer(scene, canvas) {
+    state.player = new FirstPersonController(scene, canvas);
+    await state.player.initialize();
 }
 
 function setupLighting(scene) {
@@ -30,16 +36,14 @@ function setupLighting(scene) {
 }
 
 async function setupSimulations(scene) {
-    const ballsSimulation = new BallsSimulation(scene);
-    await ballsSimulation.initialize();
-
     const terrainGenerator = new TerrainGenerator();
     const ground = terrainGenerator.createTerrain(scene, {
-        width: 30,
-        length: 30,
-        roughness: 0.03
+        width: 300,
+        length: 300,
+        roughness: 0.4
     });
 
+    const ballsSimulation = new BallsSimulation(scene);
     ballsSimulation.addPhysicsToTerrain(ground);
     ballsSimulation.startSpawning();
 
@@ -62,8 +66,10 @@ async function createScene() {
     state.engine = new BABYLON.Engine(state.canvas, true);
     state.scene = new BABYLON.Scene(state.engine);
 
-    setupCamera(state.scene, state.canvas);
+    await setupPhysics(state.scene);
+    
     setupLighting(state.scene);
+    await setupPlayer(state.scene, state.canvas);
 
     const { ballsSimulation, terrainGenerator } = await setupSimulations(state.scene);
     state.ballsSimulation = ballsSimulation;
