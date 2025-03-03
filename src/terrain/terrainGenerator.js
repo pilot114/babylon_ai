@@ -182,10 +182,9 @@ export class TerrainGenerator {
         // Применяем материал
         this.applyMaterial(ground, scene);
 
-        // Заменяем PhysicsImpostor на PhysicsAggregate
         const groundAggregate = new BABYLON.PhysicsAggregate(
             ground,
-            BABYLON.PhysicsShapeType.MESH, // Используем MESH вместо BOX
+            BABYLON.PhysicsShapeType.MESH,
             { mass: 0, restitution: 0.7, friction: 0.6 },
             scene
         );

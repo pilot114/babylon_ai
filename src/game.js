@@ -4,6 +4,7 @@ import { TerrainGenerator } from './terrain/terrainGenerator.js';
 import { BallsSimulation } from './simulations/ballsSimulation.js';
 import { GameGUI } from './ui/gui.js';
 import { FirstPersonController } from './player/firstPersonController.js';
+import { SkyBox } from './environment/skybox.js';
 
 const state = {
     canvas: null,
@@ -70,6 +71,10 @@ async function createScene() {
     
     setupLighting(state.scene);
     await setupPlayer(state.scene, state.canvas);
+
+    // Добавляем skybox
+    const skybox = new SkyBox(state.scene);
+    skybox.create();
 
     const { ballsSimulation, terrainGenerator } = await setupSimulations(state.scene);
     state.ballsSimulation = ballsSimulation;
