@@ -80,13 +80,43 @@ export class TerrainGenerator {
         const persistence = 0.5;
         const octaves = 6;
 
-        for (let i = 0; i < octaves; i++) {
-            height += this.noise(x * frequency, z * frequency) * amplitude;
-            amplitude *= persistence;
-            frequency *= 2;
-        }
+        // Вычисляем расстояние от центра
+        const centerX = 0;
+        const centerZ = 0;
+        const dx = x - centerX;
+        const dz = z - centerZ;
+        const distanceFromCenter = Math.sqrt(dx * dx + dz * dz);
 
-        return height;
+        // Определяем размер плоской области
+        const flatRadius = 5; // Размер плоской области
+        const transitionRadius = 1; // Размер области перехода
+
+        if (distanceFromCenter < flatRadius) {
+            // В центральной области возвращаем постоянную высоту
+            return 0;
+        } else if (distanceFromCenter < flatRadius + transitionRadius) {
+            // В области перехода плавно смешиваем плоскую область и шум
+            const t = (distanceFromCenter - flatRadius) / transitionRadius;
+            const smoothT = t * t * (3 - 2 * t); // Плавная интерполяция
+
+            // Генерируем обычную высоту с шумом Перлина
+            for (let i = 0; i < octaves; i++) {
+                height += this.noise(x * frequency, z * frequency) * amplitude;
+                amplitude *= persistence;
+                frequency *= 2;
+            }
+
+            // Смешиваем плоскую область и шум
+            return height * smoothT;
+        } else {
+            // За пределами переходной зоны используем обычный шум
+            for (let i = 0; i < octaves; i++) {
+                height += this.noise(x * frequency, z * frequency) * amplitude;
+                amplitude *= persistence;
+                frequency *= 2;
+            }
+            return height;
+        }
     }
 
     createTerrain(scene, options = {}) {

@@ -1,5 +1,3 @@
-import * as BABYLON from '@babylonjs/core';
-
 export class BaseSimulation {
     constructor(scene) {
         this.scene = scene;
