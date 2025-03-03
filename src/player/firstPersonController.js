@@ -142,17 +142,14 @@ export class FirstPersonController {
         const currentVelocity = body.getLinearVelocity();
         const deltaTime = this.scene.getEngine().getDeltaTime() / 1000;
 
-        // Проверяем, нажата ли клавиша Shift для бега
         this.isSprinting = this.inputMap["shift"];
-
-        // Выбираем текущую скорость в зависимости от состояния
         let currentMoveSpeed = this.isFlying ? this.flySpeed : (this.isSprinting ? this.sprintSpeed : this.moveSpeed);
 
         // Получаем направления из поворота камеры
         const rotation = this.camera.rotation;
         const forward = new BABYLON.Vector3(
             Math.sin(rotation.y),
-            this.isFlying ? Math.sin(-rotation.x) : 0, // Добавляем вертикальный компонент в режиме полета
+            this.isFlying ? Math.sin(-rotation.x) : 0,
             Math.cos(rotation.y)
         );
 
@@ -178,17 +175,12 @@ export class FirstPersonController {
             rawMoveDirection.subtractInPlace(right);
         }
 
-        // В режиме полета пробел поднимает вверх независимо от направления взгляда
-        if (this.isFlying && this.inputMap[" "]) {
-            rawMoveDirection.y += 1;
-        }
-
         // Нормализуем направление движения
         if (rawMoveDirection.length() > 0) {
             rawMoveDirection.normalize();
         }
 
-        // Плавно сглаживаем ввод для устранения дерганья
+        // Плавно сглаживаем ввод
         if (rawMoveDirection.length() === 0 && (this.isGrounded || this.isFlying)) {
             this.smoothInputVelocity = BABYLON.Vector3.Zero();
         } else {
@@ -199,16 +191,19 @@ export class FirstPersonController {
             );
         }
 
+        let canJump = false;
+        let justLanded = false;
+
         // В режиме полета игнорируем проверку земли и склона
         if (!this.isFlying) {
-            // Проверяем столкновение с землей и получаем нормаль поверхности
+            // Проверяем столкновение с землей
             const origin = this.camera.position.subtract(new BABYLON.Vector3(0, this.cameraHeight, 0));
             const ray = new BABYLON.Ray(origin, BABYLON.Vector3.Down(), 1.0);
             const hit = this.scene.pickWithRay(ray);
             
             const wasGrounded = this.isGrounded;
             this.isGrounded = hit.hit;
-            const justLanded = !wasGrounded && this.isGrounded;
+            justLanded = !wasGrounded && this.isGrounded;
 
             if (this.isGrounded && hit.pickedMesh) {
                 this.groundNormal = hit.getNormal(true);
@@ -225,6 +220,10 @@ export class FirstPersonController {
             if (this.isGrounded && canWalkOnSlope) {
                 this.lastGroundedTime = performance.now();
             }
+
+            // Проверяем возможность прыжка
+            canJump = (this.isGrounded && canWalkOnSlope) || 
+                     (performance.now() - this.lastGroundedTime < this.coyoteTime);
         }
 
         // Вычисляем целевую скорость
@@ -234,14 +233,19 @@ export class FirstPersonController {
         let newVelocity;
         
         if (this.isFlying) {
-            // В режиме полета используем прямое управление скоростью
+            // В режиме полета
             newVelocity = BABYLON.Vector3.Lerp(
                 currentVelocity,
                 targetVelocity,
                 this.acceleration * deltaTime
             );
+
+            // В режиме полета пробел поднимает вверх
+            if (this.inputMap[" "]) {
+                newVelocity.y = this.flySpeed * 0.5; // Вертикальная скорость полета
+            }
         } else {
-            // В обычном режиме сохраняем текущую логику движения
+            // В обычном режиме
             const currentHorizontalVelocity = new BABYLON.Vector3(currentVelocity.x, 0, currentVelocity.z);
             let newHorizontalVelocity;
 
@@ -258,16 +262,30 @@ export class FirstPersonController {
                 newHorizontalVelocity = currentHorizontalVelocity.scale(0.99);
             }
 
-            // Применяем гравитацию только в обычном режиме
+            // Обработка вертикального движения
             let newVerticalVelocity = currentVelocity.y;
-            
-            if (!this.isGrounded) {
+
+            // Обработка прыжка в обычном режиме
+            if (this.inputMap[" "] && canJump) {
+                newVerticalVelocity = this.jumpForce;
+                this.isGrounded = false;
+                this.lastGroundedTime = 0;
+            } else if (!this.isGrounded) {
+                // Применяем гравитацию в воздухе
                 newVerticalVelocity += this.gravity * deltaTime;
                 if (newVerticalVelocity < this.maxVerticalVelocity) {
                     newVerticalVelocity = this.maxVerticalVelocity;
                 }
             } else {
+                // На земле
                 newVerticalVelocity = 0;
+                if (justLanded) {
+                    body.setLinearVelocity(new BABYLON.Vector3(
+                        currentVelocity.x,
+                        0,
+                        currentVelocity.z
+                    ));
+                }
             }
 
             newVelocity = new BABYLON.Vector3(
