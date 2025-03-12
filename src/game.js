@@ -5,6 +5,7 @@ import { BallsSimulation } from './simulations/ballsSimulation.js';
 import { GameGUI } from './ui/gui.js';
 import { FirstPersonController } from './player/firstPersonController.js';
 import { SkyBox } from './environment/skybox.js';
+import { ModelLoader } from './models/modelLoader.js';
 
 const state = {
     canvas: null,
@@ -14,7 +15,8 @@ const state = {
     ballsSimulation: null,
     gui: null,
     player: null,
-    havokPlugin: null
+    havokPlugin: null,
+    modelLoader: null
 };
 
 async function setupPhysics(scene) {
@@ -62,6 +64,17 @@ function setupRendering(engine, scene) {
     window.addEventListener("resize", () => engine.resize());
 }
 
+async function setupScene(scene) {
+    const modelLoader = new ModelLoader(scene);
+
+    await modelLoader.loadAndPlace("BoomBox.glb",
+        new BABYLON.Vector3(0, 1, 0),
+        { scale: 1 }
+    );
+
+    return modelLoader;
+}
+
 async function createScene() {
     state.canvas = document.getElementById("renderCanvas");
     state.engine = new BABYLON.Engine(state.canvas, true);
@@ -82,10 +95,16 @@ async function createScene() {
 
     state.gui = setupGUI(state.scene);
 
+    const modelLoader = await setupScene(state.scene);
+    state.modelLoader = modelLoader;
+
     return state.scene;
 }
 
 function dispose() {
+    if (state.modelLoader) {
+        state.modelLoader.dispose();
+    }
     if (state.gui) {
         state.gui.dispose();
     }
