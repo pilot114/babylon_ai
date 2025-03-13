@@ -6,6 +6,7 @@ import { GameGUI } from './ui/gui.js';
 import { FirstPersonController } from './player/firstPersonController.js';
 import { SkyBox } from './environment/skybox.js';
 import { ModelLoader } from './models/modelLoader.js';
+import { Inspector } from '@babylonjs/inspector';
 
 const state = {
     canvas: null,
@@ -67,11 +68,12 @@ function setupRendering(engine, scene) {
 async function setupScene(scene) {
     const modelLoader = new ModelLoader(scene);
 
-    await modelLoader.loadAndPlace("BoomBox.glb",
-        new BABYLON.Vector3(0, 1, 0),
-        { scale: 1 }
-    );
-
+    await modelLoader.loadAndPlace("rock.glb", new BABYLON.Vector3(-10, 0, -40), new BABYLON.Vector3(1, 1, 1), true);
+    await modelLoader.loadAndPlace("tree.glb", new BABYLON.Vector3(-10, 0, -50), new BABYLON.Vector3(0.1, 0.1, 0.1));
+    await modelLoader.loadAndPlace("helicopter.glb", new BABYLON.Vector3(-10, 0, -60), new BABYLON.Vector3(0.01, 0.01, 0.01));
+    await modelLoader.loadAndPlace("santa_belly_dancing.glb", new BABYLON.Vector3(-10, 0, -70), new BABYLON.Vector3(1, 1, 1));
+    await modelLoader.loadAndPlace("bear.glb", new BABYLON.Vector3(-10, 0, -80), new BABYLON.Vector3(1, 1, 1));
+    
     return modelLoader;
 }
 
@@ -85,7 +87,6 @@ async function createScene() {
     setupLighting(state.scene);
     await setupPlayer(state.scene, state.canvas);
 
-    // Добавляем skybox
     const skybox = new SkyBox(state.scene);
     skybox.create();
 
@@ -97,6 +98,8 @@ async function createScene() {
 
     const modelLoader = await setupScene(state.scene);
     state.modelLoader = modelLoader;
+
+    Inspector.Show(state.scene, {embedMode: true});
 
     return state.scene;
 }

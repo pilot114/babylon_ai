@@ -127,7 +127,6 @@ export class TerrainGenerator {
 
         // Создаем массивы для вершин и индексов
         const positions = [];
-        const indices = [];
         const uvs = [];
 
         // Создаем сетку вершин с применением шума Перлина
@@ -153,6 +152,7 @@ export class TerrainGenerator {
         }
 
         // Создаем индексы для треугольников
+        const indices = [];
         for (let z = 0; z < subdivisions; z++) {
             for (let x = 0; x < subdivisions; x++) {
                 const baseIdx = z * verticesPerRow + x;
@@ -163,9 +163,6 @@ export class TerrainGenerator {
             }
         }
 
-        // Создаем меш
-        const ground = new BABYLON.Mesh("terrain", scene);
-        
         // Создаем и применяем вертексные данные
         const vertexData = new BABYLON.VertexData();
         vertexData.positions = positions;
@@ -177,6 +174,8 @@ export class TerrainGenerator {
         BABYLON.VertexData.ComputeNormals(positions, indices, normals);
         vertexData.normals = normals;
         
+        // Создаем меш
+        const ground = new BABYLON.Mesh("terrain", scene);
         vertexData.applyToMesh(ground);
 
         // Применяем материал

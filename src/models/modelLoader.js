@@ -7,21 +7,33 @@ export class ModelLoader {
     constructor(scene) {
         this.scene = scene;
         this.loadedModels = new Map();
-        this.modelsPath = "/models/";
+        this.modelsPath = "/models/";``
     }
 
-    /**
-     * Загружает и размещает модель на сцене
-     */
-    async loadAndPlace(fileName, position, options = {}) {
+    async loadAndPlace(fileName, position, scaling, rootMeshIsCollide) {
+        
+        const result = await BABYLON.ImportMeshAsync(this.modelsPath + fileName, this.scene);
+        const rootMesh = result.meshes.find(mesh => mesh.name === "__root__" || mesh.parent === null);
+        rootMesh.name = fileName;
+        rootMesh.position = position;
+        rootMesh.scaling = scaling;
 
-        await BABYLON.AppendSceneAsync(this.modelsPath + fileName, this.scene, {
-            position,
-            scale: 10,
-            rotation: new BABYLON.Vector3(0, 0, 0),
-            physics: true,
-            physicsShape: "BOX"
-        });
+        if (rootMeshIsCollide) {
+            result.meshes.forEach(mesh => {
+                if (mesh.getTotalVertices() > 0) {
+                    new BABYLON.PhysicsAggregate(
+                        mesh,
+                        BABYLON.PhysicsImpostor.MeshImpostor,
+                        { 
+                            mass: 0,
+                            friction: 0.2,
+                            restitution: 0.2
+                        },
+                        this.scene
+                    );
+                }
+            });
+        }
     }
 
     clearCache() {
