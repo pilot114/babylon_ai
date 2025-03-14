@@ -1,12 +1,13 @@
 import * as BABYLON from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
-import { TerrainGenerator } from './terrain/terrainGenerator.js';
-import { BallsSimulation } from './simulations/ballsSimulation.js';
-import { GameGUI } from './ui/gui.js';
-import { FirstPersonController } from './player/firstPersonController.js';
-import { SkyBox } from './environment/skybox.js';
-import { ModelLoader } from './models/modelLoader.js';
 import { Inspector } from '@babylonjs/inspector';
+
+import { TerrainGenerator } from './terrainGenerator.js';
+import { BallsSimulation } from './ballsSimulation.js';
+import { GameGUI } from './gui.js';
+import { FirstPersonController } from './firstPersonController.js';
+import { SkyBox } from './skybox.js';
+import { ModelLoader } from './modelLoader.js';
 
 const state = {
     canvas: null,
@@ -122,8 +123,8 @@ function setupSound(scene) {
     //     autoplay: true,
     // });
 
-    var audio = new Audio('https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3');
-    audio.play();
+    // var audio = new Audio('https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3');
+    // audio.play();
 
     // var audio = new Audio(selectedTrack);
     // audio.play();

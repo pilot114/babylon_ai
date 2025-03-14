@@ -1,7 +1,4 @@
 import * as BABYLON from '@babylonjs/core';
-import { registerBuiltInLoaders } from "@babylonjs/loaders/dynamic";
-
-registerBuiltInLoaders();
 
 export class ModelLoader {
     constructor(scene) {
