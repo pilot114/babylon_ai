@@ -7,7 +7,7 @@ export class ModelLoader {
     constructor(scene) {
         this.scene = scene;
         this.loadedModels = new Map();
-        this.modelsPath = "/models/";``
+        this.modelsPath = "/assets/models/";
     }
 
     async loadAndPlace(fileName, position, scaling, rootMeshIsCollide) {
@@ -20,18 +20,17 @@ export class ModelLoader {
 
         if (rootMeshIsCollide) {
             result.meshes.forEach(mesh => {
-                if (mesh.getTotalVertices() > 0) {
-                    new BABYLON.PhysicsAggregate(
-                        mesh,
-                        BABYLON.PhysicsImpostor.MeshImpostor,
-                        { 
-                            mass: 0,
-                            friction: 0.2,
-                            restitution: 0.2
-                        },
-                        this.scene
-                    );
-                }
+                if (mesh.getTotalVertices() === 0) return;
+                new BABYLON.PhysicsAggregate(
+                    mesh,
+                    BABYLON.PhysicsImpostor.MeshImpostor,
+                    { 
+                        mass: 0,
+                        friction: 0.2,
+                        restitution: 0.2
+                    },
+                    this.scene
+                );
             });
         }
     }

@@ -197,7 +197,7 @@ export class TerrainGenerator {
         const material = new BABYLON.StandardMaterial("terrainMaterial", scene);
 
         // Загружаем текстуру травы
-        const grassTexture = new BABYLON.Texture("/textures/grass.jpg", scene);
+        const grassTexture = new BABYLON.Texture("/assets/textures/grass.jpg", scene);
 
         // Настраиваем масштабирование текстуры
         const textureScale = 128;

@@ -99,9 +99,34 @@ async function createScene() {
     const modelLoader = await setupScene(state.scene);
     state.modelLoader = modelLoader;
 
+    setupSound(state.scene);
+
     Inspector.Show(state.scene, {embedMode: true});
 
     return state.scene;
+}
+
+function setupSound(scene) {
+    const soundtrackList = [
+        { url: "/assets/sounds/macleod/MonkeysSpinningMonkeys.mp3", name: "1" },
+        { url: "/assets/sounds/macleod/SchemingWeasel.mp3", name: "2" },
+        { url: "/assets/sounds/macleod/SneakySnitch.mp3", name: "3" },
+        { url: "/assets/sounds/macleod/TheBuilder.mp3", name: "4" },
+    ];
+
+    const randomIndex = Math.floor(Math.random() * soundtrackList.length);
+    const selectedTrack = soundtrackList[randomIndex];
+
+    // new BABYLON.Sound(randomIndex, selectedTrack, scene, null, {
+    //     loop: true,
+    //     autoplay: true,
+    // });
+
+    var audio = new Audio('https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3');
+    audio.play();
+
+    // var audio = new Audio(selectedTrack);
+    // audio.play();
 }
 
 function dispose() {
