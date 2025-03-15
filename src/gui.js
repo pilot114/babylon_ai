@@ -41,16 +41,14 @@ export class GameGUI {
 
     startUpdates() {
         this.updateInterval = setInterval(() => {
-            // Обновляем FPS
             this.fpsText.text = `FPS: ${Math.round(this.scene.getEngine().getFps())}`;
 
-            // Обновляем позицию
             const camera = this.scene.activeCamera;
             if (camera) {
                 const pos = camera.position;
                 this.positionText.text = `Position: X: ${pos.x.toFixed(2)} Y: ${pos.y.toFixed(2)} Z: ${pos.z.toFixed(2)}`;
             }
-        }, 100); // Обновляем чаще для более плавного отображения координат
+        }, 100);
     }
 
     dispose() {

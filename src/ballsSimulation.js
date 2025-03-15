@@ -60,8 +60,6 @@ export class BallsSimulation extends BaseSimulation {
     }
 
     addPhysicsToTerrain(ground) {
-        // Физика уже добавлена в TerrainGenerator
-        // Просто сохраняем ссылку на землю
         this.ground = ground;
     }
 

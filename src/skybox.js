@@ -7,14 +7,11 @@ export class SkyBox {
     }
 
     create() {
-        // Создаем меш для skybox
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, this.scene);
         
-        // Создаем материал для skybox
         const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
         skyboxMaterial.backFaceCulling = false;
         
-        // Используем встроенную текстуру TropicalSunnyDay из библиотеки
         skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(
             "https://assets.babylonjs.com/textures/TropicalSunnyDay",
             this.scene
@@ -25,10 +22,7 @@ export class SkyBox {
         skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
         skyboxMaterial.disableLighting = true;
         
-        // Применяем материал
         this.skybox.material = skyboxMaterial;
-
-        // Делаем skybox бесконечно далеким от камеры
         this.skybox.infiniteDistance = true;
     }
 

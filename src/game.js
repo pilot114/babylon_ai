@@ -69,11 +69,19 @@ function setupRendering(engine, scene) {
 async function setupScene(scene) {
     const modelLoader = new ModelLoader(scene);
 
-    await modelLoader.loadAndPlace("rock.glb", new BABYLON.Vector3(-10, 0, -40), new BABYLON.Vector3(1, 1, 1), true);
-    await modelLoader.loadAndPlace("tree.glb", new BABYLON.Vector3(-10, 0, -50), new BABYLON.Vector3(0.1, 0.1, 0.1));
-    await modelLoader.loadAndPlace("helicopter.glb", new BABYLON.Vector3(-10, 0, -60), new BABYLON.Vector3(0.01, 0.01, 0.01));
-    await modelLoader.loadAndPlace("santa_belly_dancing.glb", new BABYLON.Vector3(-10, 0, -70), new BABYLON.Vector3(1, 1, 1));
-    await modelLoader.loadAndPlace("bear.glb", new BABYLON.Vector3(-10, 0, -80), new BABYLON.Vector3(1, 1, 1));
+    await modelLoader.loadAndPlace("rock.glb", new BABYLON.Vector3(-10, 0, -30), new BABYLON.Vector3(1, 1, 1), true);
+    await modelLoader.loadAndPlace("tree.glb", new BABYLON.Vector3(-10, 0, -40), new BABYLON.Vector3(0.1, 0.1, 0.1));
+    await modelLoader.loadAndPlace("helicopter.glb", new BABYLON.Vector3(-10, 0, -50), new BABYLON.Vector3(0.01, 0.01, 0.01));
+    await modelLoader.loadAndPlace("santa_belly_dancing.glb", new BABYLON.Vector3(-10, 0, -60), new BABYLON.Vector3(1, 1, 1));
+    await modelLoader.loadAndPlace("bear.glb", new BABYLON.Vector3(-10, 0, -70), new BABYLON.Vector3(1, 1, 1));
+    await modelLoader.loadAndPlace(
+        "office_computer.glb",
+        new BABYLON.Vector3(-10, 0, -80),
+        new BABYLON.Vector3(0.1, 0.1, 0.1),
+        true
+    );
+
+    await modelLoader.loadAndPlace("western_city.glb", new BABYLON.Vector3(-40, 0.01, -60), new BABYLON.Vector3(1, 1, 1), true);
     
     return modelLoader;
 }
@@ -118,16 +126,10 @@ function setupSound(scene) {
     const randomIndex = Math.floor(Math.random() * soundtrackList.length);
     const selectedTrack = soundtrackList[randomIndex];
 
-    // new BABYLON.Sound(randomIndex, selectedTrack, scene, null, {
-    //     loop: true,
-    //     autoplay: true,
-    // });
-
-    // var audio = new Audio('https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3');
-    // audio.play();
-
-    // var audio = new Audio(selectedTrack);
-    // audio.play();
+    new BABYLON.Sound(randomIndex, selectedTrack, scene, null, {
+        loop: true,
+        autoplay: true,
+    });
 }
 
 function dispose() {
@@ -158,8 +160,6 @@ async function startGame() {
     }
 }
 
-// Запуск игры при загрузке страницы
 window.addEventListener('DOMContentLoaded', startGame);
 
-// Очистка ресурсов при закрытии страницы
 window.addEventListener('beforeunload', dispose);

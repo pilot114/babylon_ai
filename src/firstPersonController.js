@@ -5,12 +5,12 @@ export class FirstPersonController {
         this.scene = scene;
         this.canvas = canvas;
         this.camera = null;
-        this.moveSpeed = 10; // Обычная скорость движения
-        this.sprintSpeed = 20; // Скорость бега при нажатии Shift
-        this.flySpeed = 40; // Скорость в режиме полета (в 2 раза больше sprint)
-        this.acceleration = 50; // ускорение старта
-        this.deceleration = 50; // ускорение остановки
-        this.airControl = 0.2; // Контроль в воздухе (0-1)
+        this.moveSpeed = 10; // base speed
+        this.sprintSpeed = 20; // sprint speed
+        this.flySpeed = 40; // fly speed
+        this.acceleration = 50; // start acceleration
+        this.deceleration = 50; // deceleration
+        this.airControl = 0.2; // air control (0-1)
         this.jumpForce = 7;
         this.gravity = -9.81;
         this.isGrounded = false;
@@ -19,18 +19,18 @@ export class FirstPersonController {
         this.cameraHeight = 0.1;
         this.maxVerticalVelocity = -20;
         this.capsuleHeight = 1.8;
-        this.friction = 4; // Уменьшаем трение для более плавного движения
+        this.friction = 4; // friction for smooth movement
         this.lastGroundedTime = 0;
         this.coyoteTime = 150;
         this.maxSlopeAngle = 40;
         this.slopeSlowdownFactor = 0.5;
         this.groundNormal = new BABYLON.Vector3(0, 1, 0);
         this.smoothInputVelocity = new BABYLON.Vector3(0, 0, 0);
-        this.inputSmoothingFactor = 0.5; // Увеличиваем для более быстрой реакции на ввод
-        this.velocitySmoothingFactor = 0.05; // Новый параметр для сглаживания скорости
-        this.lastMoveDirection = new BABYLON.Vector3(0, 0, 0); // Сохраняем последнее направление
-        this.isSprinting = false; // Флаг для отслеживания бега
-        this.isFlying = false; // Флаг режима полета
+        this.inputSmoothingFactor = 0.5; // input smoothing factor
+        this.velocitySmoothingFactor = 0.05; // velocity smoothing factor
+        this.lastMoveDirection = new BABYLON.Vector3(0, 0, 0); // last move direction
+        this.isSprinting = false; // sprint flag
+        this.isFlying = false; // flying flag
     }
 
     async initialize() {
@@ -70,26 +70,21 @@ export class FirstPersonController {
             collider,
             BABYLON.PhysicsShapeType.CAPSULE,
             { 
-                mass: 70, // Более реалистичная масса человека
-                friction: 0.2, // Меньшее трение для более плавного движения
-                restitution: 0, // Полностью отключаем отскок
-                linearDamping: 0.05, // Минимальное сопротивление для реалистичного падения
-                angularDamping: 1.0, // Максимальное сопротивление вращению
+                mass: 70, // human mass
+                friction: 0.2, // less friction for smooth movement
+                restitution: 0, // disable bouncing
+                linearDamping: 0.05, // minimal damping for realistic falling
+                angularDamping: 1.0, // maximum damping for rotation
             },
             this.scene
         );
 
         const body = this.camera.physicsAggregate.body;
         
-        // Настраиваем физические свойства
         body.setMassProperties({
             inertia: new BABYLON.Vector3(0, 0, 0),
             centerOfMass: new BABYLON.Vector3(0, 0, 0)
         });
-
-        // Устанавливаем нулевые скорости
-        // body.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
-        // body.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
     }
 
     setupInputs() {
@@ -101,9 +96,7 @@ export class FirstPersonController {
                     } else if (kbInfo.event.key === "Control") {
                         this.inputMap["control"] = true;
                     } else if (kbInfo.event.key.toLowerCase() === "q") {
-                        // Переключаем режим полета при нажатии Q
                         this.isFlying = !this.isFlying;
-                        // Сбрасываем вертикальную скорость при включении полета
                         if (this.isFlying && this.camera?.physicsAggregate?.body) {
                             const currentVel = this.camera.physicsAggregate.body.getLinearVelocity();
                             this.camera.physicsAggregate.body.setLinearVelocity(
@@ -145,7 +138,6 @@ export class FirstPersonController {
         this.isSprinting = this.inputMap["shift"];
         let currentMoveSpeed = this.isFlying ? this.flySpeed : (this.isSprinting ? this.sprintSpeed : this.moveSpeed);
 
-        // Получаем направления из поворота камеры
         const rotation = this.camera.rotation;
         const forward = new BABYLON.Vector3(
             Math.sin(rotation.y),
@@ -159,7 +151,6 @@ export class FirstPersonController {
             Math.cos(rotation.y + Math.PI/2)
         );
 
-        // Вычисляем желаемое направление движения
         const rawMoveDirection = BABYLON.Vector3.Zero();
 
         if (this.inputMap["w"]) {
@@ -175,12 +166,10 @@ export class FirstPersonController {
             rawMoveDirection.subtractInPlace(right);
         }
 
-        // Нормализуем направление движения
         if (rawMoveDirection.length() > 0) {
             rawMoveDirection.normalize();
         }
 
-        // Плавно сглаживаем ввод
         if (rawMoveDirection.length() === 0 && (this.isGrounded || this.isFlying)) {
             this.smoothInputVelocity = BABYLON.Vector3.Zero();
         } else {
@@ -194,9 +183,7 @@ export class FirstPersonController {
         let canJump = false;
         let justLanded = false;
 
-        // В режиме полета игнорируем проверку земли и склона
         if (!this.isFlying) {
-            // Проверяем столкновение с землей
             const origin = this.camera.position.subtract(new BABYLON.Vector3(0, this.cameraHeight, 0));
             const ray = new BABYLON.Ray(origin, BABYLON.Vector3.Down(), 1.0);
             const hit = this.scene.pickWithRay(ray);
@@ -212,7 +199,6 @@ export class FirstPersonController {
                 this.groundNormal = new BABYLON.Vector3(0, 1, 0);
             }
 
-            // Вычисляем угол наклона поверхности
             const slopeAngle = BABYLON.Vector3.Dot(this.groundNormal, BABYLON.Vector3.Up());
             const slopeAngleDegrees = Math.acos(slopeAngle) * (180 / Math.PI);
             const canWalkOnSlope = slopeAngleDegrees <= this.maxSlopeAngle;
@@ -221,31 +207,25 @@ export class FirstPersonController {
                 this.lastGroundedTime = performance.now();
             }
 
-            // Проверяем возможность прыжка
             canJump = (this.isGrounded && canWalkOnSlope) || 
                      (performance.now() - this.lastGroundedTime < this.coyoteTime);
         }
 
-        // Вычисляем целевую скорость
         const targetVelocity = this.smoothInputVelocity.scale(currentMoveSpeed);
 
-        // Текущая скорость
         let newVelocity;
         
         if (this.isFlying) {
-            // В режиме полета
             newVelocity = BABYLON.Vector3.Lerp(
                 currentVelocity,
                 targetVelocity,
                 this.acceleration * deltaTime
             );
 
-            // В режиме полета пробел поднимает вверх
             if (this.inputMap[" "]) {
-                newVelocity.y = this.flySpeed * 0.5; // Вертикальная скорость полета
+                newVelocity.y = this.flySpeed * 0.5;
             }
         } else {
-            // В обычном режиме
             const currentHorizontalVelocity = new BABYLON.Vector3(currentVelocity.x, 0, currentVelocity.z);
             let newHorizontalVelocity;
 
@@ -262,22 +242,18 @@ export class FirstPersonController {
                 newHorizontalVelocity = currentHorizontalVelocity.scale(0.99);
             }
 
-            // Обработка вертикального движения
             let newVerticalVelocity = currentVelocity.y;
 
-            // Обработка прыжка в обычном режиме
             if (this.inputMap[" "] && canJump) {
                 newVerticalVelocity = this.jumpForce;
                 this.isGrounded = false;
                 this.lastGroundedTime = 0;
             } else if (!this.isGrounded) {
-                // Применяем гравитацию в воздухе
                 newVerticalVelocity += this.gravity * deltaTime;
                 if (newVerticalVelocity < this.maxVerticalVelocity) {
                     newVerticalVelocity = this.maxVerticalVelocity;
                 }
             } else {
-                // На земле
                 newVerticalVelocity = 0;
                 if (justLanded) {
                     body.setLinearVelocity(new BABYLON.Vector3(
@@ -295,10 +271,8 @@ export class FirstPersonController {
             );
         }
 
-        // Применяем новую скорость
         body.setLinearVelocity(newVelocity);
 
-        // Обновляем позицию камеры
         const bodyPosition = this.camera.physicsAggregate.transformNode.position;
         this.camera.position.copyFrom(bodyPosition);
         this.camera.position.y += this.cameraHeight;
