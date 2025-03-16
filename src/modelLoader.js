@@ -30,6 +30,9 @@ export class ModelLoader {
                 );
             });
         }
+        this.loadedModels.set(fileName, rootMesh);
+
+        return rootMesh;
     }
 
     clearCache() {
@@ -43,4 +46,4 @@ export class ModelLoader {
         }
         this.loadedModels.clear();
     }
-} 
+}

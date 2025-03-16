@@ -8,6 +8,7 @@ import { GameGUI } from './gui.js';
 import { FirstPersonController } from './firstPersonController.js';
 import { SkyBox } from './skybox.js';
 import { ModelLoader } from './modelLoader.js';
+import { HelicopterController } from './helicopterController.js';
 
 const state = {
     canvas: null,
@@ -18,7 +19,9 @@ const state = {
     gui: null,
     player: null,
     havokPlugin: null,
-    modelLoader: null
+    modelLoader: null,
+    helicopterController: null,
+    helicopterModel: null
 };
 
 async function setupPhysics(scene) {
@@ -71,7 +74,11 @@ async function setupScene(scene) {
 
     await modelLoader.loadAndPlace("rock.glb", new BABYLON.Vector3(-10, 0, -30), new BABYLON.Vector3(1, 1, 1), true);
     await modelLoader.loadAndPlace("tree.glb", new BABYLON.Vector3(-10, 0, -40), new BABYLON.Vector3(0.1, 0.1, 0.1));
-    await modelLoader.loadAndPlace("helicopter.glb", new BABYLON.Vector3(-10, 0, -50), new BABYLON.Vector3(0.01, 0.01, 0.01));
+    
+    // Load helicopter model and store the reference
+    const helicopterMesh = await modelLoader.loadAndPlace("helicopter.glb", new BABYLON.Vector3(-10, 0, -50), new BABYLON.Vector3(0.01, 0.01, 0.01));
+    state.helicopterModel = helicopterMesh;
+
     await modelLoader.loadAndPlace("santa_belly_dancing.glb", new BABYLON.Vector3(-10, 0, -60), new BABYLON.Vector3(1, 1, 1));
     await modelLoader.loadAndPlace("bear.glb", new BABYLON.Vector3(-10, 0, -70), new BABYLON.Vector3(1, 1, 1));
     await modelLoader.loadAndPlace(
@@ -80,9 +87,8 @@ async function setupScene(scene) {
         new BABYLON.Vector3(0.1, 0.1, 0.1),
         true
     );
-
     await modelLoader.loadAndPlace("western_city.glb", new BABYLON.Vector3(-40, 0.01, -60), new BABYLON.Vector3(1, 1, 1), true);
-    
+
     return modelLoader;
 }
 
@@ -107,6 +113,11 @@ async function createScene() {
 
     const modelLoader = await setupScene(state.scene);
     state.modelLoader = modelLoader;
+    
+    if (state.helicopterModel) {
+        state.helicopterController = new HelicopterController(state.scene, state.player);
+        state.helicopterController.initialize(state.helicopterModel);
+    }
 
     setupSound(state.scene);
 
@@ -133,6 +144,9 @@ function setupSound(scene) {
 }
 
 function dispose() {
+    if (state.helicopterController) {
+        state.helicopterController.dispose();
+    }
     if (state.modelLoader) {
         state.modelLoader.dispose();
     }
