@@ -87,7 +87,9 @@ async function setupScene(scene) {
         new BABYLON.Vector3(0.1, 0.1, 0.1),
         true
     );
-    await modelLoader.loadAndPlace("western_city.glb", new BABYLON.Vector3(-40, 0.01, -60), new BABYLON.Vector3(1, 1, 1), true);
+    await modelLoader.loadAndPlace("grib.glb", new BABYLON.Vector3(-30, 0.8, -10), new BABYLON.Vector3(1, 1, 1), true);
+
+    await modelLoader.loadAndPlace("western_city.glb", new BABYLON.Vector3(-50, 0.01, -70), new BABYLON.Vector3(1, 1, 1), true);
 
     return modelLoader;
 }
