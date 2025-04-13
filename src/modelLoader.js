@@ -7,6 +7,69 @@ export class ModelLoader {
         this.modelsPath = "/assets/models/";
     }
 
+    /**
+     * Создает простое зеркало на сцене
+     */
+    createMirror(position, size = 5, reflectionLevel = 0.8) {
+        // Создаем плоскость для зеркала
+        const mirror = BABYLON.MeshBuilder.CreatePlane(
+            "mirror", 
+            { width: size, height: size, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, 
+            this.scene
+        );
+        
+        mirror.position = position;
+        
+        // Создаем материал для зеркала
+        const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", this.scene);
+        mirrorMaterial.backFaceCulling = false;
+        
+        // Создаем текстуру отражения
+        const reflectionTexture = new BABYLON.MirrorTexture(
+            "mirrorTexture", 
+            1024, 
+            this.scene
+        );
+        
+        // Получаем нормаль зеркала
+        const normal = new BABYLON.Vector3(0, 0, -1);
+        
+        // Настраиваем плоскость отражения
+        reflectionTexture.mirrorPlane = BABYLON.Plane.FromPositionAndNormal(
+            mirror.position,
+            normal
+        );
+        
+        // Обновляем плоскость отражения при рендеринге
+        this.scene.onBeforeRenderObservable.add(() => {
+            // Получаем актуальную нормаль с учетом поворота
+            const worldNormal = BABYLON.Vector3.TransformNormal(
+                normal,
+                mirror.getWorldMatrix()
+            );
+            
+            // Обновляем плоскость отражения
+            reflectionTexture.mirrorPlane = BABYLON.Plane.FromPositionAndNormal(
+                mirror.position,
+                worldNormal
+            );
+        });
+        
+        // Добавляем все меши сцены в список отражения
+        reflectionTexture.renderList = this.scene.meshes;
+        
+        // Устанавливаем уровень отражения
+        reflectionTexture.level = reflectionLevel;
+        
+        // Применяем текстуру к материалу
+        mirrorMaterial.reflectionTexture = reflectionTexture;
+        
+        // Применяем материал к зеркалу
+        mirror.material = mirrorMaterial;
+        
+        return mirror;
+    }
+
     async loadAndPlace(fileName, position, scaling, rootMeshIsCollide) {
         
         const result = await BABYLON.ImportMeshAsync(this.modelsPath + fileName, this.scene);

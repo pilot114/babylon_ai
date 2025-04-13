@@ -72,6 +72,14 @@ function setupRendering(engine, scene) {
 async function setupScene(scene) {
     const modelLoader = new ModelLoader(scene);
 
+    // Создаем зеркало в другом месте
+    const mirror = modelLoader.createMirror(
+        new BABYLON.Vector3(0, 5, -10), // Ближе к начальной позиции игрока
+        8, // размер
+        0.7 // уровень отражения
+    );
+    mirror.rotation.y = Math.PI;
+
     await modelLoader.loadAndPlace("rock.glb", new BABYLON.Vector3(-10, 0, -30), new BABYLON.Vector3(1, 1, 1), true);
     await modelLoader.loadAndPlace("tree.glb", new BABYLON.Vector3(-10, 0, -40), new BABYLON.Vector3(0.1, 0.1, 0.1));
     
